@@ -1,0 +1,187 @@
+# Установка пакета FRR
+apt-get -y install frr
+# Эта команда устанавливает пакет FRR (Free Range Routing) с автоматическим подтверждением установки (-y).
+
+# Автозагрузка FRR
+systemctl enable --now frr
+# Команда включает автозапуск службы FRR и запускает её немедленно (--now).
+
+# Включение демона службы OSPF
+sed -i 's/ospfd=no/ospfd=yes/g' /etc/frr/daemons
+systemctl restart frr
+# Первая команда редактирует файл /etc/frr/daemons, заменяя строку "ospfd=no" на "ospfd=yes", что включает демон OSPF.
+# Вторая команда перезапускает службу FRR, чтобы изменения вступили в силу.
+
+# Вход в интерактивную среду маршрутизатора
+vtysh
+# Команда запускает vtysh — интерактивную оболочку FRR, где можно настраивать маршрутизатор.
+
+# Показать интерфейсы
+sh in br
+# Внутри vtysh эта команда (сокращенно от "show interfaces brief") выводит краткую информацию о конфигурации сетевых интерфейсов.
+
+# Настройка интерфейсов и IP-адресов
+configure terminal
+interface eth1
+ip address 192.168.1.1/24
+no shutdown
+interface eth2
+ip address 192.168.2.1/24
+no shutdown
+interface eth3
+ip address 192.168.3.1/24
+no shutdown
+# Команды перехода в режим глобальной конфигурации ("configure terminal") и последующая настройка интерфейсов eth1, eth2 и eth3:
+# - Задает IP-адрес и маску подсети для каждого интерфейса.
+# - Команда "no shutdown" активирует интерфейс.
+
+(config)# router ospf
+network 192.168.1.0/24 area 0
+network 192.168.2.0/24 area 0
+network 192.168.3.0/24 area 0
+end
+# Команды для настройки протокола OSPF:
+# - Вход в режим конфигурации OSPF ("router ospf").
+# - Объявление сетей, участвующих в OSPF, с указанием области (area 0).
+# - Команда "end" завершает режим конфигурации.
+
+# Показать соседей OSPF
+do sh ip ospf neighbor
+# В режиме vtysh команда "do" позволяет выполнять обычные (exec) команды.
+# "sh ip ospf neighbor" выводит список соседей OSPF и состояние их соединений.
+
+# Сохранение конфигурации
+do w
+# Команда "do w" (сокращение от "write") сохраняет текущую конфигурацию FRR в постоянное хранилище.
+
+
+
+
+Подробная инструкция по установке и настройке FRR с OSPF на Ubuntu 20.04 для 3 клиентов
+1. Установка FRR:
+
+Bash
+sudo apt install frr
+Используйте код с осторожностью.
+content_copy
+2. Автозагрузка FRR:
+
+Bash
+sudo systemctl enable frr
+Используйте код с осторожностью.
+content_copy
+3. Настройка OSPF:
+
+Войти в интерактивную среду маршрутизатора:
+Bash
+sudo vtysh
+Используйте код с осторожностью.
+content_copy
+Создать VRF для каждого клиента:
+router ospf vrf vrf1
+router ospf vrf vrf2
+router ospf vrf vrf3
+Настроить интерфейсы и IP-адреса для каждого клиента:
+(config-vrf vrf1)# interface eth1
+(config-vrf vrf1)# ip address 192.168.1.1/24
+(config-vrf vrf1)# no shutdown
+
+(config-vrf vrf2)# interface eth2
+(config-vrf vrf2)# ip address 192.168.2.1/24
+(config-vrf vrf2)# no shutdown
+
+(config-vrf vrf3)# interface eth3
+(config-vrf vrf3)# ip address 192.168.3.1/24
+(config-vrf vrf3)# no shutdown
+Определить сети OSPF для каждого VRF:
+(config-vrf vrf1)# network 192.168.1.0/24 area 0
+(config-vrf vrf1)# end
+
+(config-vrf vrf2)# network 192.168.2.0/24 area 0
+(config-vrf vrf2)# end
+
+(config-vrf vrf3)# network 192.168.3.0/24 area 0
+(config-vrf vrf3)# end
+Выйти из режима конфигурации:
+Bash
+end
+Используйте код с осторожностью.
+content_copy
+4. Сохранить конфигурацию:
+
+Bash
+write
+Используйте код с осторожностью.
+content_copy
+5. Запуск FRR:
+
+Bash
+sudo systemctl start frr
+Используйте код с осторожностью.
+content_copy
+6. Проверка работы OSPF:
+
+Проверка соседей OSPF:
+Bash
+show ip ospf neighbor vrf vrf1
+show ip ospf neighbor vrf vrf2
+show ip ospf neighbor vrf vrf3
+
+
+
+
+
+
+Установка пакета FRR:
+Обновите базу данных пакетов с помощью следующей команды:
+sudo apt update
+
+Установите пакет FRR:
+sudo apt-get -y install frr
+
+Автозагрузка FRR:
+Включите автозагрузку FRR:
+sudo systemctl enable --now frr
+
+Включение демона службы OSPF:
+Отредактируйте файл /etc/frr/daemons с помощью выбранного вами текстового редактора.
+Найдите секцию с параметрами watchfrr_enable, zebra, и другими.
+Включите необходимые демоны, изменив значение на yes.
+Настройка интерфейсов и IP-адресов:
+Войдите в интерактивную среду маршрутизатора:
+vtysh
+
+Показать интерфейсы:
+sh interfaces brief
+
+Настройте интерфейсы eth1, eth2 и eth3 с соответствующими IP-адресами:
+configure terminal
+interface eth1
+ip address 192.168.1.1/24
+no shutdown
+
+interface eth2
+ip address 192.168.2.1/24
+no shutdown
+
+interface eth3
+ip address 192.168.3.1/24
+no shutdown
+end
+
+Настройка OSPF:
+В интерактивной среде маршрутизатора выполните следующие команды:
+configure terminal
+router ospf
+  network 192.168.1.0/24 area 0
+  network 192.168.2.0/24 area 0
+  network 192.168.3.0/24 area 0
+  end
+
+Проверка соседей OSPF:
+Показать соседей OSPF:
+do show ip ospf neighbor
+
+Сохранение конфигурации:
+Сохраните текущую конфигурацию:
+do write
