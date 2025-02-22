@@ -1,0 +1,149 @@
+Ubuntu 16.04 Установка необходимых пакетов:
+sudo apt update
+sudo apt install isc-dhcp-server iptables-persistent
+
+Настройка сетевых интерфейсов:
+sudo nano /etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto ens3
+iface ens3 inet dhcp
+
+auto ens4
+iface ens4 inet static
+    address 192.168.1.1
+    netmask 255.255.255.0
+
+auto ens5
+iface ens5 inet static
+    address 192.168.2.1
+    netmask 255.255.255.0
+
+Перезапуск сетевых служб:
+sudo service networking restart
+
+Настройка DHCP-сервера:
+sudo nano /etc/dhcp/dhcpd.conf
+
+ddns-update-style none;
+option domain-name "kir.int";
+option domain-name-servers 8.8.8.8, 8.8.4.4;
+default-lease-time 86400;
+max-lease-time 604800;
+authoritative;
+log-facility local7;
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.100 192.168.1.200;
+  option routers 192.168.1.1;
+}
+subnet 192.168.2.0 netmask 255.255.255.0 {
+  range 192.168.2.100 192.168.2.200;
+  option routers 192.168.2.1;
+}
+
+Перезапуск DHCP-сервера:
+
+sudo systemctl restart isc-dhcp-server
+sudo nano /etc/sysctl.conf
+net.ipv4.ip_forward=1
+
+Применение изменений в IP-перенаправлении:
+sudo sysctl -p
+
+Настройка правил iptables для маскирования (NAT):
+sudo iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE
+sudo iptables-save > /etc/iptables/rules.v4
+
+
+
+
+
+
+
+
+
+
+
+Ubuntu 20.04 установка необходимых пакетов:
+sudo apt update
+sudo apt install isc-dhcp-server iptables-persistent
+
+Настройка сетевых интерфейсов:
+sudo nano /etc/netplan/01-netcfg.yaml
+
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: yes
+    eth1:
+      addresses:
+        - 192.168.1.1/24
+    eth2:
+      addresses:
+        - 192.168.2.1/24
+
+
+Примените изменения:
+sudo netplan apply
+
+Настройка DHCP: sudo nano /etc/dhcp/dhcpd.conf
+
+ddns-update-style none;
+option domain-name "kir.int";
+option domain-name-servers 8.8.8.8, 8.8.4.4;
+default-lease-time 86400;
+max-lease-time 604800;
+authoritative;
+log-facility local7;
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.100 192.168.1.200;
+  option routers 192.168.1.1;
+}
+subnet 192.168.2.0 netmask 255.255.255.0 {
+  range 192.168.2.100 192.168.2.200;
+  option routers 192.168.2.1;
+}
+
+Сохраните файл и перезапустите DHCP-сервер:
+sudo systemctl restart isc-dhcp-server
+
+Настройка IP-перенаправления:
+sudo nano /etc/sysctl.conf
+net.ipv4.ip_forward=1
+
+Примените изменения:
+sudo sysctl -p
+
+Настройка правил iptables для маскирования (NAT):
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+sudo iptables-save > /etc/iptables/rules.v4
+
+
+
+
+
+
+
+
+
+
+
+
+Пример настройки для статического IP:
+auto lo
+iface lo inet loopback
+
+auto ens3
+iface ens3 inet static
+    address 192.168.1.101
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+    dns-nameservers 8.8.8.8 8.8.4.4
+
+Перезапустите сетевые службы для применения изменений:
+sudo service networking restart
