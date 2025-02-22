@@ -1,0 +1,52 @@
+Обновите свою операционную систему
+sudo apt update && sudo apt upgrade -y
+
+Установите необходимые пакеты, используя следующую команду:
+apt install -y ca-certificates apt-transport-https software-properties-common
+
+Добавьте этот PPA
+add-apt-repository -y ppa:ondrej/php
+
+Обновите репозиторий
+sudo apt update
+
+apt install apache2 mysql-server php php-mysql php-mbstring php-xml php-curl php-zip php-gd php-intl php-soap
+
+wget https://download.moodle.org/download.php/stable404/moodle-4.4.tgz
+
+sudo mv moodle-4.4.tgz /var/www/html/
+
+tar -xf /var/www/html/moodle-4.4.tgz
+
+sudo mkdir /var/www/moodledata
+
+sudo chown www-data /var/www/moodledata
+
+sudo mysql
+
+CREATE DATABASE moodle DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'moodleuser'@'localhost' IDENTIFIED BY 'Test123';
+GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,CREATE TEMPORARY TABLES,DROP,INDEX,ALTER ON moodle.* TO 'moodleuser'@'localhost';
+FLUSH PRIVILEGES;
+quit
+
+sudo chmod -R 777 /var/www/html/moodle
+
+sudo sed -i 's/;max_input_vars = 1000/max_input_vars = 5000/' /etc/php/8.3/apache2/php.ini
+
+sudo systemctl restart apache2
+
+Логин: admin
+
+Сервер баз данных: localhost
+Название базы данных: moodle
+Пользователь базы данных: moodleuser
+Пароль: Test123
+Префикс имен таблиц: mdl_
+
+Пароль должен содержать символов - не менее 8, цифр - не менее 1, строчных букв - не менее 1, прописных букв - не менее 1, не менее 1 специальных символов, таких как *, - или #.
+Новый пароль: Test123
+Имя: Admin
+Фамилия: User
+Адрес электронной почты: 
+Показывать адрес электронной почты: Скрыто
