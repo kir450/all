@@ -1,0 +1,7 @@
+apt install openssh-server
+
+nano /etc/ssh/sshd_config
+
+PermitRootLogin yes
+
+ssh root@192.168.80.50
