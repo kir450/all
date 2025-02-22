@@ -1,0 +1,60 @@
+Сначала создаем необходимые папки:
+
+                sudo mkdir /home/Media
+
+                sudo mkdir /home/Tr
+
+Предоставляем права:
+
+                 sudo chmod -R 777 /home/Media
+
+                sudo chmod -R 777 /home/Tr
+
+Для установки наберите команду: 
+             sudo apt install samba
+
+Перед внесением изменений в файл конфигурации Samba создайте резервную копию для использования в будущем: 
+            sudo cp /etc/samba/smb.conf{,.backup}
+  
+Далее нужно отредактировать файл smb.conf, для чего выполняем следующую команду: 
+             sudo nano /etc/samba/smb.conf
+
+ Все удаляем в файле и копируем в него такой конфиг:
+
+[global]
+Имя рабочей группы
+workgroup = WORKGROUP
+Имя хоста
+server string = %h server (Samba, Ubuntu)
+netbios name = samba
+#Настройки безопасности
+security = user
+map to guest = bad user
+idmap config * : backend = tdb
+
+[Media]
+path = /home/Media
+browsable = yes
+writable = yes
+guest ok = yes
+guest only = yes
+read only = no
+create mask = 0777
+directory mask = 0777
+force create mode = 0777
+force directory mode = 0777
+
+[Tr]
+path = /home/Tr
+browsable = yes
+writable = yes
+guest ok = yes
+guest only = yes
+read only = no
+create mask = 0777
+directory mask = 0777
+force create mode = 0777
+force directory mode = 0777
+
+  Все приведенные настройки должны работать после перезапуска сервера. Для этого выполняем команду: 
+             sudo service smbd restart
