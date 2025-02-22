@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Убедимся, что скрипт запускается от имени root
+if [[ $EUID -ne 0 ]]; then
+   echo "Этот скрипт должен быть запущен с правами root" 
+   exit 1
+fi
+
+echo "Настройка сетевых интерфейсов..."
+
+# Настройка интерфейсов
+cat > /etc/network/interfaces <<EOL
+# Интерфейс для подключения к интернету
+auto ens3
+iface ens3 inet static
+    address 10.0.137.202/24
+    gateway 10.0.137.1
+
+# Интерфейс для роутера 1
+auto ens4
+iface ens4 inet static
+    address 11.11.11.1/30
+
+# Интерфейс для роутера 2
+auto ens5
+iface ens5 inet static
+    address 22.22.22.1/30
+EOL
+
+# Перезапуск сетевой службы
+echo "Перезапуск сетевой службы..."
+systemctl restart networking.service
+
+# Настройка маршрутизации
+echo "Настройка маршрутизации и NAT..."
+# Включение форвардинга
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-sysctl.conf
+sysctl --system
+
+# Настройка NAT (маскарадинг)
+cat > /etc/nftables.conf <<EOL
+table inet nat {
+    chain POSTROUTING {
+        type nat hook postrouting priority srcnat;
+        oifname "ens3" masquerade;
+    }
+}
+EOL
+
+# Применение настроек nftables
+systemctl enable --now nftables
+nft flush ruleset
+nft -f /etc/nftables.conf
+
+echo "Настройка завершена. Машина готова как маршрутизатор!"
