@@ -1,0 +1,75 @@
+Шаг 1: Подготовка серверов
+Убедитесь, что пакеты для работы с туннелями установлены на обеих машинах:
+sudo apt update
+sudo apt install iproute2
+
+Шаг 2: Настройка GRE туннеля на Server A
+Создание GRE туннеля:
+sudo ip tunnel add gre1 mode gre remote 192.168.2.199 local 192.168.1.199 ttl 255
+
+Настройка IP-адреса для туннеля:
+sudo ip addr add 10.0.0.1/30 dev gre1
+
+Активизация туннеля:
+sudo ip link set gre1 up
+
+Добавление маршрута для удаленной сети:
+sudo ip route add 10.1.0.0/24 dev gre1
+
+Шаг 3: Настройка GRE туннеля на Server B
+Создание GRE туннеля:
+sudo ip tunnel add gre1 mode gre remote 192.168.1.199 local 192.168.2.199 ttl 255
+
+Настройка IP-адреса для туннеля:
+sudo ip addr add 10.0.0.2/30 dev gre1
+
+Активизация туннеля:
+sudo ip link set gre1 up
+
+Добавление маршрута для удаленной сети:
+sudo ip route add 10.0.0.0/24 dev gre1
+
+Шаг 4: Постоянная конфигурация
+Чтобы эти настройки сохранялись после перезагрузки, добавьте их в сетевые конфигурационные файлы.
+
+Для Server A:
+Откройте файл sudo nano /etc/network/interfaces
+
+Добавьте следующие строки:
+auto gre1
+iface gre1 inet static
+    address 10.0.0.1
+    netmask 255.255.255.252
+    pre-up ip tunnel add gre1 mode gre remote 192.168.2.199 local 192.168.1.199 ttl 255
+    post-down ip tunnel del gre1
+    up ip route add 10.1.0.0/24 dev gre1
+
+Для Server B:
+Откройте файл sudo nano /etc/network/interfaces
+Добавьте следующие строки:
+auto gre1
+iface gre1 inet static
+    address 10.0.0.2
+    netmask 255.255.255.252
+    pre-up ip tunnel add gre1 mode gre remote 192.168.1.199 local 192.168.2.199 ttl 255
+    post-down ip tunnel del gre1
+    up ip route add 10.0.0.0/24 dev gre1
+
+Шаг 5: Проверка настройки
+Перезагрузите сетевые интерфейсы:
+systemctl restart systemd-networkd.service
+
+Проверьте статус туннеля:
+На обоих серверах выполните:
+
+ip tunnel show
+
+Проверьте маршруты:
+ip route
+
+Проверьте связь между подсетями:
+На Server A:
+ping 10.1.0.1
+
+На Server B:
+ping 10.0.0.1
