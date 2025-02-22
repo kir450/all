@@ -1,0 +1,27 @@
+Изменить имя компьютера:
+sudo nano /etc/hostname
+sudo nano /etc/hosts
+Перезапустить сеть: sudo systemctl restart networking  
+Aдрес шлюза (gateway): ip route
+
+https://i12bretro.github.io/tutorials/0594.html
+https://andreyex.ru/ubuntu/kak-ustanovit-moodle-na-ubuntu-16-04/
+https://www.linuxcapable.com/how-to-install-php-8-3-on-ubuntu-linux/
+
+GUI
+
+Установка десктопной среды Xfce:
+sudo apt-get update
+sudo apt-get install xfce4
+
+Установка менеджера отображения LightDM:
+sudo apt-get install lightdm
+
+Установка дополнительных компонентов (опционально):
+sudo apt-get install lightdm-gtk-greeter-settings
+
+Настройка LightDM как менеджера отображения по умолчанию:
+sudo dpkg-reconfigure lightdm
+
+Перезагрузите сервер:
+sudo reboot
