@@ -1,0 +1,97 @@
+# update software respositories
+sudo apt update
+
+# install available software updates
+sudo apt upgrade -y
+
+# install prerequisites
+sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+
+# add docker gpg key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+# add docker apt repository
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+# install docker
+sudo apt install docker-ce docker-compose containerd.io -y
+
+# add the current user to the docker group
+sudo usermod -aG docker $USER
+
+# reauthenticate for the new group membership to take effect
+su - $USER
+
+# create working directories
+mkdir /home/$USER/docker/mediawiki/images -p && mkdir /home/$USER/docker/mariadb -p
+
+# set owner of working directories
+sudo chown "$USER":"$USER" /home/"$USER"/docker -R
+
+# create containers network
+docker network create containers
+
+# run the mariadb docker container
+docker run --name mariadb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_USER=mediawiki_rw -e MYSQL_PASSWORD=Test123 -e MYSQL_DATABASE=mediawiki -v /home/$USER/docker/mariadb:/var/lib/mysql --network containers -d mariadb:latest
+
+# run the mediawiki docker container
+docker run -d --name mediawiki -p 8080:80 -e MYSQL_USER=mediawiki_rw -e MYSQL_PASSWORD=Test123 -e MYSQL_DATABASE=mediawiki -v /home/$USER/docker/mediawiki/images:/var/www/html/images --network containers mediawiki:latest
+
+
+Откройте веб-браузер и перейдите по ссылке http://DNSorIP:8080
+
+Прокрутите страницу до конца и нажмите на ссылку set up the wiki link
+
+Установите языки > Нажмите Продолжить
+
+Нажмите Продолжить на экране приветствия
+
+Выполните настройки базы данных следующим образом:
+Database type:
+Database host: mariadb
+Database name: mediawiki
+Database table prefix:
+Database username: mediawiki_rw
+Database password: Test123
+
+Нажмите Продолжить
+
+Оставьте флажок Использовать ту же учетную запись, что и для установки > Нажмите Продолжить
+
+Дайте Вики-сайту название и создайте имя пользователя и пароль администратора
+
+Снимите флажок Делиться данными об этой установке с разработчиками MediaWiki
+
+Test123!@#
+
+Установите флажок "Мне уже скучно, просто установите вики" > Нажмите Продолжить
+
+Нажмите Продолжить еще раз, чтобы начать установку
+
+После завершения установки нажмите Продолжить
+
+На странице Загрузки LocalSettings.php загрузите файл
+
+Откройте загруженный файл LocalSettings.php и скопируйте содержимое в буфер обмена
+
+Вернувшись на хост Docker, запустите следующую команду, чтобы создать LocalSettings.php в нужном месте
+
+# create and edit LocalSettings.php
+nano /home/$USER/docker/mediawiki/LocalSettings.php
+
+Вставьте скопированное содержимое из загруженного файла LocalSettings.php
+Нажмите CTRL+O, Enter, CTRL+X, чтобы внести изменения
+Выполните следующие команды
+
+# remove mediawiki container
+docker rm mediawiki --force
+# re-initialize mediawiki container with local settings
+docker run -d --name mediawiki -p 8080:80 -e MYSQL_USER=mediawiki_rw -e MYSQL_PASSWORD=Test123 -e MYSQL_DATABASE=mediawiki -v /home/$USER/docker/mediawiki/images:/var/www/html/images -v /home/$USER/docker/mediawiki/LocalSettings.php:/var/www/html/LocalSettings.php --network containers mediawiki:latest
+
+Вернитесь в браузер и нажмите на ссылку "Войдите в свою вики-страницу"
+
+Нажмите на ссылку "Войти" в правом верхнем углу экрана
+
+Войдите в систему с учетной записью администратора, созданной во время настройки
+
+Добро пожаловать в MediaWiki
