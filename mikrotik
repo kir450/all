@@ -1,0 +1,108 @@
+Шаг 1: Настройка IP-адресов
+Назначьте IP-адреса интерфейсам, подключенным к коммутаторам.
+
+/ip address
+add address=192.168.1.1/24 interface=ether2
+add address=192.168.2.1/24 interface=ether3
+add address=192.168.3.1/24 interface=ether4
+add address=192.168.4.1/24 interface=ether5
+add address=192.168.5.1/24 interface=ether6
+add address=192.168.6.1/24 interface=ether7
+add address=192.168.7.1/24 interface=ether8
+
+Шаг 2: Настройка DHCP-сервера
+Настройте DHCP-сервер для каждого интерфейса, чтобы устройства могли автоматически получать IP-адреса.
+
+/ip pool
+add name=dhcp_pool1 ranges=192.168.1.100-192.168.1.200
+add name=dhcp_pool2 ranges=192.168.2.100-192.168.2.200
+add name=dhcp_pool3 ranges=192.168.3.100-192.168.3.200
+add name=dhcp_pool4 ranges=192.168.4.100-192.168.4.200
+add name=dhcp_pool5 ranges=192.168.5.100-192.168.5.200
+add name=dhcp_pool6 ranges=192.168.6.100-192.168.6.200
+add name=dhcp_pool7 ranges=192.168.7.100-192.168.7.200
+
+Создайте DHCP-сервера:
+/ip dhcp-server
+add address-pool=dhcp_pool1 interface=ether2 lease-time=10m name=dhcp1
+add address-pool=dhcp_pool2 interface=ether3 lease-time=10m name=dhcp2
+add address-pool=dhcp_pool3 interface=ether4 lease-time=10m name=dhcp3
+add address-pool=dhcp_pool4 interface=ether5 lease-time=10m name=dhcp4
+add address-pool=dhcp_pool5 interface=ether6 lease-time=10m name=dhcp5
+add address-pool=dhcp_pool6 interface=ether7 lease-time=10m name=dhcp6
+add address-pool=dhcp_pool7 interface=ether8 lease-time=10m name=dhcp7
+
+Настройте DHCP-сетевые параметры:
+/ip dhcp-server network
+add address=192.168.1.0/24 gateway=192.168.1.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.2.0/24 gateway=192.168.2.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.3.0/24 gateway=192.168.3.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.4.0/24 gateway=192.168.4.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.5.0/24 gateway=192.168.5.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.6.0/24 gateway=192.168.6.1 dns-server=8.8.8.8,8.8.4.4
+add address=192.168.7.0/24 gateway=192.168.7.1 dns-server=8.8.8.8,8.8.4.4
+
+Шаг 3: Настройка NAT для доступа в интернет
+Настройте NAT (маскарадинг) для обеспечения доступа в интернет.
+/ip firewall nat
+add chain=srcnat out-interface=ether1 action=masquerade
+
+Шаг 4: Настройка маршрута по умолчанию
+Добавьте маршрут по умолчанию для выхода в интернет.
+/ip route
+add gateway=IP_ADDRESS_OF_YOUR_ISP
+Замените IP_ADDRESS_OF_YOUR_ISP на реальный IP-адрес шлюза вашего интернет-провайдера ip route print.
+
+Шаг 5: Настройка DNS
+Настройте DNS-серверы для разрешения имен.
+/ip dns
+set servers=8.8.8.8,8.8.4.4
+
+
+
+Шаг 1:Создание моста (Bridge):
+Создайте мост, если он еще не создан, и добавьте все интерфейсы, которые будут участвовать в VLAN 1.
+/interface bridge
+add name=bridge1
+
+/interface bridge port
+add interface=ether2 bridge=bridge1
+add interface=ether3 bridge=bridge1
+add interface=ether4 bridge=bridge1
+add interface=ether5 bridge=bridge1
+
+Шаг 2:Создание VLAN 1:
+VLAN 1 обычно является дефолтной VLAN, но если она отсутствует, вы можете создать её следующим образом:
+/interface vlan
+add name=vlan1 vlan-id=1 interface=bridge
+Назначение VLAN на мост:
+Свяжите созданный мост с VLAN 1.
+/interface bridge vlan
+add bridge=bridge1 tagged=bridge1 untagged=ether2,ether3,ether4,ether5 vlan-ids=1
+
+Шаг 3: Настройка IP-адреса на VLAN интерфейсе
+Назначьте IP-адрес VLAN интерфейсу для управления и связи.
+/ip address
+add address=192.168.1.1/24 interface=vlan1
+
+Шаг 4: Настройка DHCP-сервера
+Если нужно, чтобы устройства автоматически получали IP-адреса, настройте DHCP-сервер на VLAN интерфейсе.
+Создайте пул адресов:
+/ip pool
+add name=dhcp_pool1 ranges=192.168.1.100-192.168.1.200
+
+Создайте DHCP-сервер:
+/ip dhcp-server
+add address-pool=dhcp_pool1 interface=vlan1 lease-time=10m name=dhcp1
+Настройте DHCP-сетевые параметры:
+/ip dhcp-server network
+add address=192.168.1.0/24 gateway=192.168.1.1 dns-server=8.8.8.8,8.8.4.4
+
+Шаг 5: Настройка NAT и маршрутизации (если необходимо)
+Если коммутатор также выполняет функции маршрутизатора, настройте NAT и маршрутизацию для доступа в интернет.
+/ip firewall nat
+add chain=srcnat out-interface=ether1 action=masquerade
+Настройка маршрута по умолчанию:
+/ip route
+add gateway=IP_ADDRESS_OF_YOUR_ISP
+Замените IP_ADDRESS_OF_YOUR_ISP на реальный IP-адрес шлюза вашего интернет-провайдера.
